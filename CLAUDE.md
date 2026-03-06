@@ -30,9 +30,10 @@ This is a new protocol designed from scratch. See the parent `infodancer/infodan
 ## Technology
 
 - **Go** for the server implementation
-- **Protocol Buffers** for message serialization
-- **gRPC** for reliable RPC operations (fetch, key exchange, reputation)
-- **UDP** for lightweight message notifications (fire-and-forget)
+- **Protocol Buffers** for message serialization across all channels
+- **gRPC** (mTLS) for authenticated domain-to-domain RPC (key exchange, reputation, responsibility transfer)
+- **HTTP** for CDN-cacheable blob fetch (`GET /message/{id}` — message ID as capability token, no auth required)
+- **UDP + protobuf** for lightweight message notifications (fire-and-forget, no handshake)
 - **DNS SRV** (`_mail._tcp.domain`) for domain discovery
 
 ## Development Commands
