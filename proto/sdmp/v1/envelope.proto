@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package sdmp.v1;
+
+option go_package = "github.com/infodancer/sdmp/proto/sdmp/v1";
+
+// Envelope contains the protocol-defined metadata for a message.
+// Servers operate only on envelopes — payloads are opaque encrypted bytes.
+// The envelope is encrypted to the receiving domain's key; intermediate
+// servers see only the destination domain.
+message Envelope {
+  // Destination domain for routing.
+  string destination_domain = 1;
+
+  // Cryptographically bound sender identity (visible to destination domain only).
+  string sender = 2;
+
+  // Hashed recipient address — opaque to the receiving domain.
+  bytes recipient_hash = 3;
+
+  // Globally unique, cryptographically random, protocol-generated.
+  bytes message_id = 4;
+
+  // Parent message ID for protocol-level threading. Empty if not a reply.
+  bytes thread_id = 5;
+
+  // Declared content type of the payload (hint only, client-validated).
+  string payload_mime_type = 6;
+
+  // Byte count of the encrypted payload.
+  uint64 payload_size = 7;
+
+  // Hash of the encrypted payload — integrity verification without decryption.
+  bytes payload_hash = 8;
+
+  // Sender-attested timestamp (Unix seconds).
+  int64 timestamp = 9;
+
+  // Per-message transit expiry (Unix seconds).
+  int64 transit_expiry = 10;
+
+  // Message flags.
+  uint32 flags = 11;
+
+  // Signature over all preceding fields by the sender's signing key.
+  bytes envelope_signature = 12;
+}
+
+// Well-known flag bits for Envelope.flags.
+enum EnvelopeFlag {
+  ENVELOPE_FLAG_UNSPECIFIED = 0;
+
+  // This message retracts a previously sent message (identified by thread_id).
+  ENVELOPE_FLAG_RETRACTION = 1;
+
+  // Sender requests a read receipt.
+  ENVELOPE_FLAG_READ_RECEIPT_REQUESTED = 2;
+
+  // Sender's domain uses mandatory key escrow (disclosed per protocol).
+  ENVELOPE_FLAG_ESCROW_DISCLOSED = 4;
+
+  // This is a reference message containing IDs of associated file transfers.
+  ENVELOPE_FLAG_REFERENCE = 8;
+}

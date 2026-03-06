@@ -30,3 +30,4 @@ credentials.*
 
 # Go
 vendor/
+.task/

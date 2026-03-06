@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package sdmp.v1;
+
+option go_package = "github.com/infodancer/sdmp/proto/sdmp/v1";
+
+// Notification is a fire-and-forget UDP packet sent from a sending domain
+// to a receiving domain to signal that a message is available for retrieval.
+//
+// Encrypted to the receiving domain's public key before transmission.
+// The receiving domain provides NO response — silence is the only answer.
+// This prevents address harvesting, infrastructure mapping, and backscatter.
+message Notification {
+  // Globally unique, cryptographically random message identifier.
+  // Functions as a capability token for fetching the encrypted payload.
+  bytes message_id = 1;
+
+  // Domain name of the sender (e.g. "example.com").
+  string sender_domain = 2;
+
+  // Opaque hash identifying the recipient. Derived from sender/recipient
+  // key material via KDF. The receiving domain cannot map this to a user
+  // account without the recipient's cooperation.
+  bytes recipient_hash = 3;
+
+  // Sender-attested timestamp (Unix seconds).
+  int64 timestamp = 4;
+
+  // Transit expiry (Unix seconds). After this time, the sender will
+  // delete the message from transit storage. No retransmission after expiry.
+  int64 expiry = 5;
+
+  // Declared content type hint (e.g. "message/822", "application/octet-stream").
+  // Client-validated, not protocol-verified. Allows recipient server to make
+  // pull/discard decisions without fetching.
+  string mime_type_hint = 6;
+
+  // Byte count of the encrypted payload.
+  uint64 payload_size = 7;
+
+  // Signature over all preceding fields by the sender domain's signing key.
+  bytes signature = 8;
+}
+
+// EncryptedNotification is the wire format for a UDP notification packet.
+// The inner notification is serialized and encrypted to the receiving
+// domain's public key. A network observer sees only the destination
+// domain and an opaque encrypted blob.
+message EncryptedNotification {
+  // Protocol version for forward compatibility.
+  uint32 version = 1;
+
+  // Destination domain (the only field visible to network observers
+  // and intermediate infrastructure).
+  string destination_domain = 2;
+
+  // The Notification message, serialized and encrypted to the
+  // destination domain's public key.
+  bytes encrypted_payload = 3;
+
+  // Nonce used for encryption.
+  bytes nonce = 4;
+}

@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package sdmp.v1;
+
+option go_package = "github.com/infodancer/sdmp/proto/sdmp/v1";
+
+// KeyService handles domain and user key publication and discovery.
+// Authenticated via mTLS with domain signing keys.
+service KeyService {
+  // GetDomainKey retrieves a domain's current signing key and metadata.
+  rpc GetDomainKey(GetDomainKeyRequest) returns (DomainKeyResponse);
+
+  // GetUserKey retrieves a user's published key record, signed by their domain.
+  rpc GetUserKey(GetUserKeyRequest) returns (UserKeyResponse);
+}
+
+message GetDomainKeyRequest {
+  // The domain to look up.
+  string domain = 1;
+}
+
+message DomainKeyResponse {
+  // Domain name.
+  string domain = 1;
+
+  // Public key algorithm (e.g. "Ed25519", "X25519").
+  string algorithm = 2;
+
+  // Public key material.
+  bytes public_key = 3;
+
+  // Key fingerprint (hash of public key material).
+  bytes fingerprint = 4;
+
+  // Validity period start (Unix seconds).
+  int64 valid_from = 5;
+
+  // Validity period end (Unix seconds).
+  int64 valid_until = 6;
+
+  // Whether this domain uses mandatory key escrow.
+  bool escrow_mandatory = 7;
+
+  // Signature by the domain's signing key over the above fields.
+  bytes signature = 8;
+}
+
+message GetUserKeyRequest {
+  // The user's address (e.g. "alice@example.com").
+  string address = 1;
+}
+
+message UserKeyResponse {
+  // User address.
+  string address = 1;
+
+  // Public key algorithm.
+  string algorithm = 2;
+
+  // Public key material.
+  bytes public_key = 3;
+
+  // Key fingerprint.
+  bytes fingerprint = 4;
+
+  // Key creation timestamp (Unix seconds).
+  int64 created = 5;
+
+  // Validity period start (Unix seconds).
+  int64 valid_from = 6;
+
+  // Validity period end (Unix seconds).
+  int64 valid_until = 7;
+
+  // Whether the key is revoked.
+  bool revoked = 8;
+
+  // Whether the key is escrowed by the domain.
+  bool escrowed = 9;
+
+  // Domain's signature over all preceding fields.
+  bytes domain_signature = 10;
+}

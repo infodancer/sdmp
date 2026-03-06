@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package sdmp.v1;
+
+option go_package = "github.com/infodancer/sdmp/proto/sdmp/v1";
+
+import "sdmp/v1/envelope.proto";
+
+// FetchService handles message retrieval between domains.
+// Authenticated via mTLS with domain signing keys as client certificates.
+service FetchService {
+  // FetchMessage retrieves a message by ID. The response contains the
+  // envelope and encrypted payload. The caller must possess the message ID
+  // (capability token) and authenticate as the recipient's domain.
+  rpc FetchMessage(FetchMessageRequest) returns (FetchMessageResponse);
+
+  // BatchFetchMessages retrieves multiple messages in a single call.
+  // Useful for initial sync or gateway bulk transfer.
+  rpc BatchFetchMessages(BatchFetchMessagesRequest) returns (stream FetchMessageResponse);
+}
+
+message FetchMessageRequest {
+  // The message ID to retrieve (capability token).
+  bytes message_id = 1;
+}
+
+message FetchMessageResponse {
+  // The message envelope (decryptable by the recipient's domain).
+  Envelope envelope = 1;
+
+  // The encrypted payload (decryptable only by the recipient's user key).
+  bytes encrypted_payload = 2;
+}
+
+message BatchFetchMessagesRequest {
+  // List of message IDs to retrieve.
+  repeated bytes message_ids = 1;
+}

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package sdmp.v1;
+
+option go_package = "github.com/infodancer/sdmp/proto/sdmp/v1";
+
+// TransferService handles responsibility transfer between domains
+// and gateways. When a gateway accepts a message, it assumes notification
+// responsibility. The original sender's obligation ends.
+service TransferService {
+  // AcceptResponsibility signals that this server has accepted notification
+  // responsibility for a message. Returns a signed receipt that the
+  // original sender can verify and use to purge from transit storage.
+  rpc AcceptResponsibility(AcceptResponsibilityRequest) returns (AcceptResponsibilityResponse);
+}
+
+message AcceptResponsibilityRequest {
+  // The message ID being accepted.
+  bytes message_id = 1;
+
+  // The recipient domain this gateway is accepting responsibility for.
+  string recipient_domain = 2;
+
+  // The gateway domain accepting responsibility.
+  string gateway_domain = 3;
+}
+
+message AcceptResponsibilityResponse {
+  // The message ID acknowledged.
+  bytes message_id = 1;
+
+  // The expiry the gateway will honor (may differ from original).
+  // The recipient domain now has visibility into the gateway's delivery window.
+  int64 gateway_expiry = 2;
+
+  // Signed receipt: gateway's signature over message_id + recipient_domain
+  // + gateway_domain + gateway_expiry. Original sender can verify and purge.
+  bytes receipt_signature = 3;
+}

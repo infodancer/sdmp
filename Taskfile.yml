@@ -10,8 +10,16 @@ tasks:
     cmds:
       - task: all
 
+  proto:
+    desc: Generate Go code from proto definitions
+    cmds:
+      - protoc --proto_path=proto --go_out=proto --go_opt=paths=source_relative --go-grpc_out=proto --go-grpc_opt=paths=source_relative sdmp/v1/envelope.proto sdmp/v1/notification.proto sdmp/v1/fetch.proto sdmp/v1/keys.proto sdmp/v1/transfer.proto
+    sources:
+      - proto/sdmp/v1/*.proto
+
   build:
     desc: Build the Go binary
+    deps: [proto]
     cmds:
       - mkdir -p {{.BUILD_DIR}}
       - go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}} ./cmd/sdmp
