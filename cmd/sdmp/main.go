@@ -72,7 +72,7 @@ func main() {
 
 	log.Println("sdmp: shutting down")
 	grpcServer.GracefulStop()
-	notifListener.Close()
+	_ = notifListener.Close()
 }
 
 func envOrDefault(key, fallback string) string {
