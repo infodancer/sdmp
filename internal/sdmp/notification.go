@@ -72,7 +72,7 @@ func (s *NotificationSender) Send(addr string, notification *pb.EncryptedNotific
 	if err != nil {
 		return fmt.Errorf("dial udp: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	if _, err := conn.Write(data); err != nil {
 		return fmt.Errorf("write udp: %w", err)
